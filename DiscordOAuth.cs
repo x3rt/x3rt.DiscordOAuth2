@@ -94,21 +94,26 @@ public class DiscordOAuth
         return authToken;
     }
 
-    private async Task<T> GetInformationAsync<T>(string accessToken, string endpoint)
+    private async Task<T?> GetInformationAsync<T>(string accessToken, string endpoint) where T : class
     {
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         var response = await _httpClient.GetAsync($"https://discord.com/api/{endpoint}");
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
         var responseString = await response.Content.ReadAsStringAsync();
-        return JsonConvert.DeserializeObject<T>(responseString) ?? default!;
+        return JsonConvert.DeserializeObject<T?>(responseString) ?? null;
     }
 
-    private async Task<T?> GetInformationAsync<T>(HttpContext context, string endpoint)
+    private async Task<T?> GetInformationAsync<T>(HttpContext context, string endpoint) where T : class
     {
         if (AccessToken is null)
         {
-            if (!TryGetCode(context, out var code)) return default;
+            if (!TryGetCode(context, out var code)) return null;
             var accessToken = await GetTokenAsync(code!);
-            if (accessToken is null) return default;
+            if (accessToken is null) return null;
             return await GetInformationAsync<T>(accessToken.AccessToken, endpoint);
         }
         else
@@ -117,7 +122,7 @@ public class DiscordOAuth
         }
     }
 
-    private async Task<T> GetInformationAsync<T>(OAuthToken token, string endpoint)
+    private async Task<T?> GetInformationAsync<T>(OAuthToken token, string endpoint) where T : class
     {
         return await GetInformationAsync<T>(token.AccessToken, endpoint);
     }
@@ -137,7 +142,7 @@ public class DiscordOAuth
         return await GetInformationAsync<DiscordUser>(token, "users/@me");
     }
 
-    public async Task<DiscordGuild[]> GetGuildsAsync(string accessToken)
+    public async Task<DiscordGuild[]?> GetGuildsAsync(string accessToken)
     {
         return await GetInformationAsync<DiscordGuild[]>(accessToken, "users/@me/guilds");
     }
@@ -147,12 +152,12 @@ public class DiscordOAuth
         return await GetInformationAsync<DiscordGuild[]>(context, "users/@me/guilds");
     }
 
-    public async Task<DiscordGuild[]> GetGuildsAsync(OAuthToken token)
+    public async Task<DiscordGuild[]?> GetGuildsAsync(OAuthToken token)
     {
         return await GetInformationAsync<DiscordGuild[]>(token, "users/@me/guilds");
     }
 
-    public async Task<DiscordConnection[]> GetConnectionsAsync(string accessToken)
+    public async Task<DiscordConnection[]?> GetConnectionsAsync(string accessToken)
     {
         return await GetInformationAsync<DiscordConnection[]>(accessToken, "users/@me/connections");
     }
@@ -162,7 +167,7 @@ public class DiscordOAuth
         return await GetInformationAsync<DiscordConnection[]>(context, "users/@me/connections");
     }
 
-    public async Task<DiscordConnection[]> GetConnectionsAsync(OAuthToken token)
+    public async Task<DiscordConnection[]?> GetConnectionsAsync(OAuthToken token)
     {
         return await GetInformationAsync<DiscordConnection[]>(token, "users/@me/connections");
     }
