@@ -56,13 +56,19 @@ public class DiscordOAuth
         return uriBuilder.ToString();
     }
 
-    public static bool TryGetCode(HttpRequest request, out string? code)
+    public static bool TryGetCode(HttpRequest request, string? state, out string? code)
     {
         code = null;
         if (request.Query.TryGetValue("code", out StringValues codeValues))
         {
-            code = codeValues[0];
-            return true;
+            if (request.Query.TryGetValue("state", out StringValues stateValues))
+            {
+                if (stateValues.FirstOrDefault() == state)
+                {
+                    code = codeValues;
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -70,7 +76,10 @@ public class DiscordOAuth
 
     public static bool TryGetCode(HttpContext context, out string? code)
     {
-        var b = TryGetCode(context.Request, out var a);
+        var state = context.Session.TryGetValue("state", out byte[] stateBytes)
+            ? Encoding.UTF8.GetString(stateBytes)
+            : null;
+        var b = TryGetCode(context.Request, state, out var a);
         code = a;
         return b;
     }
@@ -109,6 +118,9 @@ public class DiscordOAuth
 
     private async Task<T?> GetInformationAsync<T>(HttpContext context, string endpoint) where T : class
     {
+        var state = context.Session.TryGetValue("state", out byte[] stateBytes)
+            ? Encoding.UTF8.GetString(stateBytes)
+            : string.Empty;
         if (AccessToken is null)
         {
             if (!TryGetCode(context, out var code)) return null;
@@ -196,6 +208,9 @@ public class DiscordOAuth
 
     public async Task<bool> JoinGuildAsync(HttpContext context, GuildOptions options)
     {
+        string state = context.Session.TryGetValue("state", out byte[] stateBytes)
+            ? Encoding.UTF8.GetString(stateBytes)
+            : string.Empty;
         if (AccessToken is null)
         {
             if (!TryGetCode(context, out var code)) return false;
