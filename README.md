@@ -39,4 +39,3 @@ if (DiscordOAuth.TryGetCode(HttpContext, out var code))
 
 DiscordOAuth2 is a work in progress and any feedback or suggestions are welcome.
 This library is released under the [MIT License](LICENSE).
-```
