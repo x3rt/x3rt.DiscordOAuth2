@@ -5,26 +5,29 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Title>DiscordOAuth2</Title>
+        <Title>Discord OAuth2</Title>
         <Authors>x3rt</Authors>
         <Description>Discord OAuth2 implementation for C#</Description>
         <AssemblyName>x3rt.DiscordOAuth2</AssemblyName>
         <RootNamespace>x3rt.DiscordOAuth2</RootNamespace>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PUblishRepositoryUrl>true</PUblishRepositoryUrl>
         <RepositoryUrl>https://github.com/x3rt/x3rt.DiscordOAuth2</RepositoryUrl>
         <RepositoryType>GIT</RepositoryType>
+        <PackageTags>Discord-OAuth2;Discord-OAuth-2;Discord-OAuth;DiscordOAuth;Discord;OAuth;OAuth-2;OAuth2</PackageTags>
+        <Deterministic>true</Deterministic>
         <Version>1.0.2</Version>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="README.md" Pack="true" PackagePath="" />
-        <None Include="LICENSE" Pack="true" PackagePath="" />
+        <None Include="README.md" Pack="true" PackagePath=""/>
+        <None Include="LICENSE" Pack="true" PackagePath=""/>
     </ItemGroup>
 
 </Project>
