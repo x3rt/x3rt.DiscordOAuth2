@@ -17,7 +17,7 @@ DiscordOAuth.Configure(0123456789, "ClientSecret", "OptionalBotToken");
 ```csharp
 var scopes = new ScopesBuilder(OAuthScope.Identify);
 var oAuth = new DiscordOAuth("https://example.com/Login", scopes);
-var url = oAuth.GetAuthorizationUrl();
+var url = oAuth.GetAuthorizationUrl("state");
 /* Redirect user to url via preferred method */
 ```
 ```csharp
