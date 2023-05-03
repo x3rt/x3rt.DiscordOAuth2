@@ -21,6 +21,7 @@ public class DiscordOAuth
     private ScopesBuilder Scopes { get; set; }
 
     private string? AccessToken { get; set; }
+    public string State { get; }
 
     public static void Configure(ulong clientId, string clientSecret, string? botToken = null)
     {
@@ -31,21 +32,22 @@ public class DiscordOAuth
 
     private readonly HttpClient _httpClient = new HttpClient();
 
-    public DiscordOAuth(string redirectUri, ScopesBuilder scopes, bool prompt = true)
+    public DiscordOAuth(string redirectUri, ScopesBuilder scopes, string state, bool prompt = true)
     {
         RedirectUri = redirectUri;
         Scopes = scopes;
         Prompt = prompt;
+        State = state;
     }
 
-    public string GetAuthorizationUrl(string state)
+    public string GetAuthorizationUrl()
     {
         NameValueCollection query = HttpUtility.ParseQueryString(string.Empty);
         query["client_id"] = ClientId.ToString();
         query["redirect_uri"] = RedirectUri;
         query["response_type"] = "code";
         query["scope"] = Scopes.ToString();
-        query["state"] = state;
+        query["state"] = State;
         query["prompt"] = Prompt ? "consent" : "none";
 
         var uriBuilder = new UriBuilder("https://discord.com/api/oauth2/authorize")
@@ -56,19 +58,13 @@ public class DiscordOAuth
         return uriBuilder.ToString();
     }
 
-    public static bool TryGetCode(HttpRequest request, string? state, out string? code)
+    public static bool TryGetCode(HttpRequest request, out string? code)
     {
         code = null;
         if (request.Query.TryGetValue("code", out StringValues codeValues))
         {
-            if (request.Query.TryGetValue("state", out StringValues stateValues))
-            {
-                if (stateValues.FirstOrDefault() == state)
-                {
-                    code = codeValues;
-                    return true;
-                }
-            }
+            code = codeValues;
+            return true;
         }
 
         return false;
@@ -76,10 +72,7 @@ public class DiscordOAuth
 
     public static bool TryGetCode(HttpContext context, out string? code)
     {
-        var state = context.Session.TryGetValue("state", out byte[] stateBytes)
-            ? Encoding.UTF8.GetString(stateBytes)
-            : null;
-        var b = TryGetCode(context.Request, state, out var a);
+        var b = TryGetCode(context.Request, out var a);
         code = a;
         return b;
     }
@@ -103,6 +96,12 @@ public class DiscordOAuth
         return authToken;
     }
 
+    public bool ValidateState(HttpContext context)
+    {
+        var givenState = context.Request.Query["state"];
+        return givenState == State;
+    }
+
     private async Task<T?> GetInformationAsync<T>(string accessToken, string endpoint) where T : class
     {
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -118,9 +117,6 @@ public class DiscordOAuth
 
     private async Task<T?> GetInformationAsync<T>(HttpContext context, string endpoint) where T : class
     {
-        var state = context.Session.TryGetValue("state", out byte[] stateBytes)
-            ? Encoding.UTF8.GetString(stateBytes)
-            : string.Empty;
         if (AccessToken is null)
         {
             if (!TryGetCode(context, out var code)) return null;
@@ -186,6 +182,7 @@ public class DiscordOAuth
 
     public async Task<bool> JoinGuildAsync(string accessToken, ulong userId, GuildOptions options)
     {
+        if (BotToken is null) throw new InvalidOperationException("Bot token is not set");
         var request =
             new HttpRequestMessage(HttpMethod.Put,
                 $"https://discord.com/api/guilds/{options.GuildId}/members/{userId}");
@@ -208,9 +205,6 @@ public class DiscordOAuth
 
     public async Task<bool> JoinGuildAsync(HttpContext context, GuildOptions options)
     {
-        string state = context.Session.TryGetValue("state", out byte[] stateBytes)
-            ? Encoding.UTF8.GetString(stateBytes)
-            : string.Empty;
         if (AccessToken is null)
         {
             if (!TryGetCode(context, out var code)) return false;
