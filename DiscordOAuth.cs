@@ -21,7 +21,6 @@ public class DiscordOAuth
     private ScopesBuilder Scopes { get; set; }
 
     private string? AccessToken { get; set; }
-    public string State { get; }
 
     public static void Configure(ulong clientId, string clientSecret, string? botToken = null)
     {
@@ -32,22 +31,21 @@ public class DiscordOAuth
 
     private readonly HttpClient _httpClient = new HttpClient();
 
-    public DiscordOAuth(string redirectUri, ScopesBuilder scopes, string state, bool prompt = true)
+    public DiscordOAuth(string redirectUri, ScopesBuilder scopes, bool prompt = true)
     {
         RedirectUri = redirectUri;
         Scopes = scopes;
         Prompt = prompt;
-        State = state;
     }
 
-    public string GetAuthorizationUrl()
+    public string GetAuthorizationUrl(string state)
     {
         NameValueCollection query = HttpUtility.ParseQueryString(string.Empty);
         query["client_id"] = ClientId.ToString();
         query["redirect_uri"] = RedirectUri;
         query["response_type"] = "code";
         query["scope"] = Scopes.ToString();
-        query["state"] = State;
+        query["state"] = state;
         query["prompt"] = Prompt ? "consent" : "none";
 
         var uriBuilder = new UriBuilder("https://discord.com/api/oauth2/authorize")
@@ -94,12 +92,6 @@ public class DiscordOAuth
         var authToken = JsonConvert.DeserializeObject<OAuthToken>(responseString);
         AccessToken = authToken?.AccessToken;
         return authToken;
-    }
-
-    public bool ValidateState(HttpContext context)
-    {
-        var givenState = context.Request.Query["state"];
-        return givenState == State;
     }
 
     private async Task<T?> GetInformationAsync<T>(string accessToken, string endpoint) where T : class

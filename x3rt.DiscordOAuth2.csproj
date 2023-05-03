@@ -17,7 +17,7 @@
         <RepositoryType>GIT</RepositoryType>
         <PackageTags>Discord-OAuth2;Discord-OAuth-2;Discord-OAuth;DiscordOAuth;Discord;OAuth;OAuth-2;OAuth2</PackageTags>
         <Deterministic>true</Deterministic>
-        <Version>1.0.3</Version>
+        <Version>1.0.4</Version>
     </PropertyGroup>
 
     <ItemGroup>
