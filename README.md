@@ -6,7 +6,7 @@
 A **simple** library to handle Discord OAuth2 authentication.
 Meant to serve as an alternative to
 the [AspNet.Security.OAuth.Providers](https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers) library that
-gives more control to the user.
+gives more control to the user and one that can be used by people that are trying to avoid ASP.NETs cluttered and bulky Identity system.
 
 ## Usage
 
